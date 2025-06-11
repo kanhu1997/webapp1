@@ -30,6 +30,9 @@ pipeline {
                 powershell '''
                 $source = "${env:PUBLISH_DIR}"
                 $destination = "${env:WEB_ROOT}"
+                # Ensure logs directory exists for stdout logging
+                $logs = Join-Path $destination "logs"
+                if (!(Test-Path $logs)) { New-Item -ItemType Directory -Path $logs | Out-Null }
                 Copy-Item -Path "$source\\*" -Destination $destination -Recurse -Force
                 Write-Host "Web app files deployed to ${env:WEB_ROOT}"
                 '''
@@ -39,10 +42,11 @@ pipeline {
             steps {
                 powershell '''
                 $dll = Join-Path "${env:WEB_ROOT}" "WebApplication1.dll"
-                if (Test-Path $dll) {
-                    Write-Host "✅ Web app deployed successfully."
+                $config = Join-Path "${env:WEB_ROOT}" "web.config"
+                if (Test-Path $dll -and Test-Path $config) {
+                    Write-Host "✅ Web app and web.config deployed successfully."
                 } else {
-                    Write-Error "❌ Deployment failed. WebApplication1.dll not found."
+                    Write-Error "❌ Deployment failed. Required files not found."
                 }
                 Write-Host "\n--- Listing files in web root ---"
                 Get-ChildItem -Path "${env:WEB_ROOT}" -Recurse | Select-Object FullName
