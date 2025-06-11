@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'windows-agent' }
     environment {
-        WEB_ROOT = "C:\\inetpub\\wwwroot\\WebApplication1"
+        WEB_ROOT = "C:\\inetpub\\wwwroot"
         PUBLISH_DIR = "${env.WORKSPACE}\\publish_output"
     }
     stages {
