@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: 'github-cred', branch: 'master', url: 'https://github.com/kanhu1997/dotenet.git'
+                git credentialsId: 'github-cred', branch: 'main', url: 'https://github.com/kanhu1997/webapp1.git'
             }
         }
         stage('Restore') {
