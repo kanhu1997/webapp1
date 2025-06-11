@@ -43,7 +43,7 @@ pipeline {
                 powershell '''
                 $dll = Join-Path "${env:WEB_ROOT}" "WebApplication1.dll"
                 $config = Join-Path "${env:WEB_ROOT}" "web.config"
-                if (Test-Path $dll -and Test-Path $config) {
+                if ((Test-Path $dll) -and (Test-Path $config)) {
                     Write-Host "✅ Web app and web.config deployed successfully."
                 } else {
                     Write-Error "❌ Deployment failed. Required files not found."
