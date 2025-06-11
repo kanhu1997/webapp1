@@ -30,7 +30,7 @@ pipeline {
                 powershell '''
                 $source = "${env:PUBLISH_DIR}"
                 $destination = "${env:WEB_ROOT}"
-                Copy-Item -Path "$source\*" -Destination $destination -Recurse -Force
+                Copy-Item -Path "$source\\*" -Destination $destination -Recurse -Force
                 Write-Host "Web app files deployed to ${env:WEB_ROOT}"
                 '''
             }
