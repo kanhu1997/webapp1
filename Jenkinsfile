@@ -27,6 +27,8 @@ pipeline {
         }
         stage('Deploy') {
             steps {
+                // Overwrite web.config with a valid version before deployment
+                bat 'copy /Y web.config publish_output\web.config'
                 powershell '''
                 $source = "${env:PUBLISH_DIR}"
                 $destination = "${env:WEB_ROOT}"
