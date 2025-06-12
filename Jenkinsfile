@@ -1,68 +1,52 @@
 pipeline {
-    agent { label 'windows-agent' }
+    agent {
+        label 'windows-agent'
+    }
     environment {
-        WEB_ROOT = "C:\\inetpub\\wwwroot"
-        PUBLISH_DIR = "${env.WORKSPACE}\\publish_output"
-        ASPNETCORE_ENVIRONMENT = "Development"
+        IIS_ROOT = 'C:\\appserver'
     }
     stages {
-        stage('Checkout') {
+        stage('Clone repository') {
             steps {
-                git credentialsId: 'github-cred', branch: 'main', url: 'https://github.com/kanhu1997/webapp1.git'
+                script {
+                    checkout scm
+                }
             }
         }
-        stage('Restore') {
+        stage('Restore Dependencies') {
             steps {
-                bat 'dotnet restore webapp1.sln'
+                script {
+                    bat 'dotnet restore WebApplication1/WebApplication1.csproj'
+                }
             }
         }
         stage('Build') {
             steps {
-                bat 'dotnet build webapp1.sln --configuration Release'
+                script {
+                    bat 'dotnet build WebApplication1/WebApplication1.csproj'
+                }
             }
         }
         stage('Publish') {
             steps {
-                bat 'dotnet publish WebApplication1/WebApplication1.csproj --configuration Release --output publish_output'
+                script {
+                    bat 'dotnet publish WebApplication1/WebApplication1.csproj -c Release -o ./publish'
+                }
             }
         }
         stage('Deploy') {
             steps {
-                // Overwrite web.config with a valid version before deployment
-                bat 'copy /Y web.config publish_output\\web.config'
-                powershell '''
-                $source = "${env:PUBLISH_DIR}"
-                $destination = "${env:WEB_ROOT}"
-                # Ensure logs directory exists for stdout logging
-                $logs = Join-Path $destination "logs"
-                if (!(Test-Path $logs)) { New-Item -ItemType Directory -Path $logs | Out-Null }
-                Copy-Item -Path "$source\\*" -Destination $destination -Recurse -Force
-                Write-Host "Web app files deployed to ${env:WEB_ROOT}"
-                '''
-            }
-        }
-        stage('Verify Deployment') {
-            steps {
-                powershell '''
-                $dll = Join-Path "${env:WEB_ROOT}" "WebApplication1.dll"
-                $config = Join-Path "${env:WEB_ROOT}" "web.config"
-                if ((Test-Path $dll) -and (Test-Path $config)) {
-                    Write-Host "✅ Web app and web.config deployed successfully."
-                } else {
-                    Write-Error "❌ Deployment failed. Required files not found."
+                script {
+                    bat 'xcopy /E /Y /I .\\publish\\* "%IIS_ROOT%\\"'
                 }
-                Write-Host "--- Listing files in web root ---"
-                Get-ChildItem -Path "${env:WEB_ROOT}" -Recurse | Select-Object FullName
-                '''
             }
         }
     }
     post {
-        failure {
-            echo '🚨 Deployment failed. Check logs for details.'
-        }
-        success {
-            echo '🎉 Deployment completed successfully.'
+        always {
+            echo 'Cleaning up...'
+            // Remove the publish directory after deployment
+            bat 'if exist .\\publish rmdir /s /q .\\publish'
         }
     }
 }
