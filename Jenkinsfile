@@ -3,6 +3,7 @@ pipeline {
     environment {
         WEB_ROOT = "C:\\inetpub\\wwwroot"
         PUBLISH_DIR = "${env.WORKSPACE}\\publish_output"
+        ASPNETCORE_ENVIRONMENT = "Development" // Ensure environment is set for IIS process
     }
     stages {
         stage('Checkout') {
@@ -37,6 +38,11 @@ pipeline {
                 if (!(Test-Path $logs)) { New-Item -ItemType Directory -Path $logs | Out-Null }
                 Copy-Item -Path "$source\\*" -Destination $destination -Recurse -Force
                 Write-Host "Web app files deployed to ${env:WEB_ROOT}"
+                '''
+                // Set IIS environment variable for ASPNETCORE_ENVIRONMENT
+                powershell '''
+                Import-Module WebAdministration
+                Set-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -filter "system.webServer/aspNetCore/environmentVariables" -name "." -value @{name="ASPNETCORE_ENVIRONMENT";value="Development"} -location "Default Web Site"
                 '''
             }
         }
