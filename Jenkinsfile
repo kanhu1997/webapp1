@@ -37,6 +37,10 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
+                    // Delete all files and folders in IIS_ROOT
+                    bat 'if exist "%IIS_ROOT%\\*" del /F /Q "%IIS_ROOT%\\*"'
+                    bat 'for /d %%i in ("%IIS_ROOT%\\*") do rmdir /s /q "%%i"'
+                    // Copy new files
                     bat 'xcopy /E /Y /I .\\publish\\* "%IIS_ROOT%\\"'
                 }
             }
